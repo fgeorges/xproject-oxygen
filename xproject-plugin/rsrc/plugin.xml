@@ -1,0 +1,15 @@
+<!DOCTYPE plugin SYSTEM "../plugin.dtd">
+
+<plugin name="XProject"
+        description="XProject support."
+        version="0.3.0"
+        vendor="expath.org"
+        class="org.expath.xproject.oxygen.XProjectPlugin">
+
+   <runtime>
+      <library name="oxygen-tests.jar"/>
+   </runtime>
+
+   <extension type="WorkspaceAccess" class="org.expath.xproject.oxygen.XProjectExtension"/>
+
+</plugin>

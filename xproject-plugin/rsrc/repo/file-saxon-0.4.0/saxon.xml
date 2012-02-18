@@ -1,0 +1,24 @@
+<package xmlns="http://saxon.sf.net/ns/expath-pkg">
+
+   <!--
+       TODO: Should we link the JAR and the function classes?  In
+       general we should have only one (or the others are external
+       dependencies...)
+   -->
+   <jar>file-saxon.jar</jar>
+
+   <function>org.expath.files.saxon.functions.CopyFunction</function>
+   <function>org.expath.files.saxon.functions.ExistsFunction</function>
+   <function>org.expath.files.saxon.functions.ListFunction</function>
+
+   <xslt-wrapper>
+      <import-uri>http://expath.org/ns/file.xsl</import-uri>
+      <file>file-saxon.xsl</file>
+   </xslt-wrapper>
+
+   <xquery-wrapper>
+      <namespace>http://expath.org/ns/file</namespace>
+      <file>file-saxon.xql</file>
+   </xquery-wrapper>
+
+</package>

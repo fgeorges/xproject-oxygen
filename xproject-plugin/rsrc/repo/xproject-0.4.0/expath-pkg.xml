@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://expath.org/ns/pkg"
+         spec="1.0"
+         name="http://expath.org/lib/project"
+         abbrev="xproject"
+         version="0.4.0">
+
+   <title>XML Project Manager</title>
+
+   
+   <home>http://expath.org/</home>
+
+   <dependency package="http://expath.org/lib/files"/>
+   <dependency package="http://expath.org/lib/zip"/>
+   <dependency package="http://www.jenitennison.com/xslt/xspec"/>
+
+   <xslt>
+      <import-uri>http://expath.org/ns/project/package.xsl</import-uri>
+      <file>package.xsl</file>
+   </xslt>
+   <xslt>
+      <import-uri>http://expath.org/ns/project/release.xsl</import-uri>
+      <file>release.xsl</file>
+   </xslt>
+   <xproc>
+      <import-uri>http://expath.org/ns/project/test.xproc</import-uri>
+      <file>test.xproc</file>
+   </xproc>
+</package>
