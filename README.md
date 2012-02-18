@@ -1,6 +1,6 @@
 This project provides a plugin for the [oXygen XML](http://oxygenxml.com/) IDE,
-to support [XProject](http://expath.org/xproject), the XML project manager from
-[EXPath](http://expath.org/).
+to support [XProject](http://expath.org/modules/xproject/), the XML project
+manager from [EXPath](http://expath.org/).
 
 Basically, the plugin provides for now 4 buttons in the toolbar, to
 respectively **build** the project (that is, generate the XAR file), **test**
