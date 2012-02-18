@@ -200,6 +200,7 @@ public class XProject
         List<String> cmd = new ArrayList<String>();
         cmd.add("java");
         cmd.add("-Dorg.expath.pkg.saxon.repo=" + repo.getAbsolutePath());
+        cmd.add("-Dorg.expath.pkg.calabash.repo=" + repo.getAbsolutePath());
         cmd.add("-cp");
         cmd.add(cp);
         return cmd;
@@ -209,8 +210,15 @@ public class XProject
             throws XProjectException
     {
         try {
+            // the repo dir
+            File repo = getPluginSubdir("repo/");
+            // the environment variables
+            String[] envp = new String[]{ "EXPATH_REPO=" + repo.getAbsolutePath() };
+            // the command as an array
             String[] array = cmd.toArray(new String[]{});
+            // execute it!
             Process proc = Runtime.getRuntime().exec(array);
+            // wait for it and check the result code
             int result = proc.waitFor();
             if ( result == 0 ) {
                 myMsg.info("Build succesful");
@@ -218,14 +226,17 @@ public class XProject
             else {
                 myMsg.error("Build failure: " + result + "\n(please see oXygen logs)");
             }
-            BufferedReader stdout = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            BufferedReader stderr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            String line;
-            while ( (line = stdout.readLine()) != null ) {
-                LOG.debug("STDOUT: " + line);
-            }
-            while ( (line = stderr.readLine()) != null ) {
-                LOG.debug("STDERR: " + line);
+            // log stdout and stderr
+            if ( LOG.isDebugEnabled() ) {
+                BufferedReader stdout = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                BufferedReader stderr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                String line;
+                while ( (line = stdout.readLine()) != null ) {
+                    LOG.debug("STDOUT: " + line);
+                }
+                while ( (line = stderr.readLine()) != null ) {
+                    LOG.debug("STDERR: " + line);
+                }
             }
         }
         catch ( IOException ex ) {
