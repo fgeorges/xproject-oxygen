@@ -7,7 +7,7 @@
         class="org.expath.xproject.oxygen.XProjectPlugin">
 
    <runtime>
-      <library name="oxygen-tests.jar"/>
+      <library name="xproject-oxygen-plugin.jar"/>
    </runtime>
 
    <extension type="WorkspaceAccess" class="org.expath.xproject.oxygen.XProjectExtension"/>
