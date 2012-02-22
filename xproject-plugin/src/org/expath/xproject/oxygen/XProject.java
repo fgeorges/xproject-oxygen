@@ -107,7 +107,7 @@ public class XProject
         proc.addArgument("-i");
         proc.addArgument("source=" + myDesc.getAbsolutePath());
         proc.addArgument(pipe);
-        executeJavaProcess(proc);
+        proc.createJavaProcess().start();
     }
 
     /**
@@ -132,7 +132,7 @@ public class XProject
         proc.addArgument("currentdir=" + src.getAbsolutePath());
         proc.addArgument("format=html");
         proc.addArgument(pipe);
-        executeJavaProcess(proc);
+        proc.createJavaProcess().start();
     }
 
     /**
@@ -180,18 +180,18 @@ public class XProject
         proc.addArgument("-xsl:" + style);
         proc.addArgument("-s:" + myDesc.getAbsolutePath());
         proc.addArgument("{" + PROJECT_NS + "}revision=yo");
-        executeJavaProcess(proc);
+        proc.createJavaProcess().start();
     }
 
     /**
      * Initialize a command line (as a list of strings) to call Java.
      * 
      * The class path is setup to include Saxon, Calabash and the EXPath
-     * Packaging.  The caller can add the main class name to invoke and its
-     * parameters to the list before passing it to Runtime.exec() (as an
-     * array of strings), or any other JVM param before.  Technically, the
-     * class path is initialized by scanning the content of the subdir lib/
-     * in the plugin dir.
+     * Packaging.  Technically, the class path is initialized by scanning the
+     * content of the subdir lib/ in the plugin dir.  The local repository is
+     * also setup correctly for Saxon and Calabash.  And our custom process
+     * listener is set on the new Java process, ready to be started (as soon
+     * as the caller set the main class and its parameters).
      */
     private JavaProcess initJavaProcess()
     {
@@ -202,25 +202,17 @@ public class XProject
             String path = jar.getAbsolutePath();
             proc.addClasspathItem(path);
         }
-        // the java args
+        // the repo dir
         File repo = getPluginSubdir("repo/");
+        // $EXPATH_REPO
+        proc.addEnvVar("EXPATH_REPO", repo.getAbsolutePath());
+        // the java args
         proc.addSystemProperty("org.expath.pkg.saxon.repo", repo.getAbsolutePath());
         proc.addSystemProperty("org.expath.pkg.calabash.repo", repo.getAbsolutePath());
         proc.addSystemProperty("com.xmlcalabash.xproc-configurer", "org.expath.pkg.calabash.PkgConfigurer");
-        return proc;
-    }
-
-    private void executeJavaProcess(JavaProcess proc)
-            throws XProjectException
-    {
-        // $EXPATH_REPO
-        File repo = getPluginSubdir("repo/");
-        proc.addEnvVar("EXPATH_REPO", repo.getAbsolutePath());
         // the listener
         proc.setProcessListener(new XProjectProcListener());
-        // start it!
-        ProcessController control = proc.createJavaProcess();
-        control.start();
+        return proc;
     }
 
     /**
