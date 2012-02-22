@@ -162,7 +162,7 @@ public class XProject
         File dist = new File(myProject, "dist/");
         if ( ! dist.exists() ) {
             if ( ! dist.mkdir() ) {
-                myMsg.error("Impossible to create the project dist/ subdir (in " + dist + ")");
+                myMsg.error(LOG, "Impossible to create the project dist/ subdir (in " + dist + ")");
             }
         }
     }
@@ -250,7 +250,7 @@ public class XProject
 
         @Override
         public void processCouldNotStart(String msg) {
-            myMsg.error("Process could not start: " + msg);
+            myMsg.error(LOG, "Process could not start: " + msg);
         }
 
         @Override
@@ -258,10 +258,10 @@ public class XProject
             // check the result code
             // TODO: It seems Calabash returns always 0?!?  Even with p:error...?!?
             if ( code == 0 ) {
-                myMsg.info("Build succesful");
+                myMsg.info(LOG, "Build succesful");
             }
             else {
-                myMsg.error("Build failure: " + code + "\n(please see oXygen logs)");
+                myMsg.error(LOG, "Build failure: " + code + "\n(please see oXygen logs)");
             }
         }
 
@@ -300,10 +300,10 @@ public class XProject
     {
         File subdir = new File(myPluginDir, name);
         if ( subdir == null ) {
-            myMsg.error("The plugin subdir is not found: '" + name + "'");
+            myMsg.error(LOG, "The plugin subdir is not found: '" + name + "'");
         }
         if ( ! subdir.isDirectory() ) {
-            myMsg.error("The plugin subdir is not a dir: '" + subdir + "'");
+            myMsg.error(LOG, "The plugin subdir is not a dir: '" + subdir + "'");
         }
         return subdir;
     }

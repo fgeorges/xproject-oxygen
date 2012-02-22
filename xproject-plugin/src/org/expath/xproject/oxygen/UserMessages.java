@@ -31,27 +31,40 @@ public class UserMessages
     /**
      * Display an error message in a dialog box, and in the logs.
      */
-    public void error(String msg)
+    public void error(Logger log, String msg)
     {
-        LOG.error(msg);
+        log.error(msg);
+        myWorkspace.showErrorMessage(msg);
+    }
+
+    /**
+     * Display an error message in a dialog box, and in the logs (with a stacktrace).
+     */
+    public void error(Logger log, String msg, Throwable ex)
+    {
+        log.error(msg, ex);
         myWorkspace.showErrorMessage(msg);
     }
 
     /**
      * Display an info message in a dialog box, and in the logs.
      */
-    public void info(String msg)
+    public void info(Logger log, String msg)
     {
-        LOG.info(msg);
+        log.info(msg);
         myWorkspace.showInformationMessage(msg);
+    }
+
+    /**
+     * Add a logging message in the logs.
+     */
+    public void debug(Logger log, String msg)
+    {
+        log.debug(msg);
     }
 
     /** The workspace object, to create dialog boxes. */
     private Workspace myWorkspace;
-    /**
-     * TODO: This is not correct, let the caller pass its own logger...
-     */
-    private static final Logger LOG = Logger.getLogger(UserMessages.class);
 }
 
 

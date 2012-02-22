@@ -40,6 +40,7 @@ public class XProjectExtension
     public void applicationStarted(StandalonePluginWorkspace ws)
     {
         myWorkspace = ws;
+        myMsg = new UserMessages(ws);
         ToolbarComponentsCustomizer customizer = new MyToolbarCustomizer();
         ws.addToolbarComponentsCustomizer(customizer);
     }
@@ -51,27 +52,10 @@ public class XProjectExtension
         return true;
     }
 
-    private void error(String msg)
-    {
-        LOG.error(msg);
-        myWorkspace.showErrorMessage(msg);
-    }
-
-    private void error(Throwable ex)
-    {
-        LOG.error(ex, ex);
-        myWorkspace.showErrorMessage(ex.getMessage());
-    }
-
-    private void debug(String msg)
-    {
-        LOG.debug(msg);
-    }
-
     private static final Logger LOG = Logger.getLogger(XProjectExtension.class);
     private StandalonePluginWorkspace myWorkspace;
+    private UserMessages myMsg;
 
-    // TODO: Should I use any kind of threading, in order to not block the GUI?
     private class MyAction
             extends AbstractAction
     {
@@ -88,7 +72,7 @@ public class XProjectExtension
                 doAction(event);
             }
             catch ( Throwable ex ) {
-                error("Unexpected runtime error: " + ex);
+                myMsg.error(LOG, "Unexpected runtime error: " + ex);
                 ex.printStackTrace();
                 throw new RuntimeException(ex);
             }
@@ -98,12 +82,12 @@ public class XProjectExtension
         {
             WSEditor editor = myWorkspace.getCurrentEditorAccess(PluginWorkspace.MAIN_EDITING_AREA);
             if ( editor == null ) {
-                error("There is no opened editor.");
+                myMsg.error(LOG, "There is no opened editor.");
                 return;
             }
             URL location = editor.getEditorLocation();
             if ( ! "file".equals(location.getProtocol()) ) {
-                error("The open document has not a file: URI.");
+                myMsg.error(LOG, "The open document has not a file: URI.");
                 return;
             }
             URI uri;
@@ -111,22 +95,21 @@ public class XProjectExtension
                 uri = location.toURI();
             }
             catch ( URISyntaxException ex ) {
-                error("Not well-formed URI: " + location);
+                myMsg.error(LOG, "Not well-formed URI: " + location);
                 return;
             }
             File file = new File(uri);
             File project = getProjectDir(file);
             if ( project == null ) {
-                error("The edited file is not part of an EXPath project.");
+                myMsg.error(LOG, "The edited file is not part of an EXPath project.");
                 return;
             }
-            UserMessages msg = new UserMessages(myWorkspace);
             JavaProcessFactory factory = new JavaProcessFactory(myWorkspace);
             String install_str = myWorkspace.getUtilAccess().expandEditorVariables(EditorVariables.OXYGEN_INSTALL_DIR, null);
             File install = new File(install_str);
             File plugins = new File(install, "plugins/");
             File plugin = new File(plugins, "xproject/");
-            XProject prj = new XProject(project, msg, factory, plugin);
+            XProject prj = new XProject(project, myMsg, factory, plugin);
             try {
                 switch ( myAction ) {
                     case BUILD:   prj.build();   break;
@@ -139,27 +122,27 @@ public class XProjectExtension
                 }
             }
             catch ( XProjectException ex ) {
-                error(ex);
+                myMsg.error(LOG, ex.getMessage(), ex);
             }
         }
 
         private File getProjectDir(File file)
         {
             if ( ! file.exists() ) {
-                error("File does not exist: " + file);
+                myMsg.error(LOG, "File does not exist: " + file);
                 return null;
             }
             File parent = file.getParentFile();
             if ( parent == null ) {
-                debug("PARENT NULL");
+                myMsg.debug(LOG, "PARENT NULL");
                 return null;
             }
             else if ( isProjectDir(parent) ) {
-                debug("PARENT is project! " + parent);
+                myMsg.debug(LOG, "PARENT is project! " + parent);
                 return parent;
             }
             else {
-                debug("PARENT recurse on " + parent);
+                myMsg.debug(LOG, "PARENT recurse on " + parent);
                 return getProjectDir(parent);
             }
         }
@@ -169,7 +152,7 @@ public class XProjectExtension
             File[] children = dir.listFiles(new XProjectFilter());
             if ( children == null ) {
                 // TODO: Should probably throw an exception instead.
-                error("File is not a dir: " + dir);
+                myMsg.error(LOG, "File is not a dir: " + dir);
                 return false;
             }
             return children.length > 0;
