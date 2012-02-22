@@ -39,7 +39,8 @@ public class XProjectExtension
     public void applicationStarted(StandalonePluginWorkspace ws)
     {
         UserMessages msg = new UserMessages(this);
-        ToolbarComponentsCustomizer customizer = new MyToolbarCustomizer(msg);
+        JavaProcessFactory factory = new JavaProcessFactory(ws);
+        ToolbarComponentsCustomizer customizer = new MyToolbarCustomizer(msg, factory);
         ws.addToolbarComponentsCustomizer(customizer);
         myWorkspace = ws;
     }
@@ -51,25 +52,28 @@ public class XProjectExtension
         return true;
     }
 
-    public void error(String msg)
+    /**
+     * TODO: Pass the workspace directly to UserMessage, and don't provide these package-level methods...
+     */
+    void error(String msg)
     {
         LOG.error(msg);
         myWorkspace.showErrorMessage(msg);
     }
 
-    public void error(Throwable ex)
+    void error(Throwable ex)
     {
         LOG.error(ex, ex);
         myWorkspace.showErrorMessage(ex.getMessage());
     }
 
-    public void info(String msg)
+    void info(String msg)
     {
         LOG.info(msg);
         myWorkspace.showInformationMessage(msg);
     }
 
-    public void debug(String msg)
+    void debug(String msg)
     {
         LOG.debug(msg);
     }
@@ -81,10 +85,11 @@ public class XProjectExtension
     private class MyAction
             extends AbstractAction
     {
-        public MyAction(int action, UserMessages message)
+        public MyAction(int action, UserMessages message, JavaProcessFactory factory)
         {
             myAction = action;
             myMsg = message;
+            myFactory = factory;
         }
 
         @Override
@@ -127,7 +132,7 @@ public class XProjectExtension
                 error("The edited file is not part of an EXPath project.");
                 return;
             }
-            XProject prj = new XProject(project, myMsg);
+            XProject prj = new XProject(project, myMsg, myFactory);
             try {
                 switch ( myAction ) {
                     case BUILD:   prj.build();   break;
@@ -186,6 +191,8 @@ public class XProjectExtension
         private int myAction;
         /** The messages object, used for dialog boxes creation and logging. */
         private UserMessages myMsg;
+        /** The java process factory. */
+        private JavaProcessFactory myFactory;
     }
 
     private static class XProjectFilter
@@ -206,9 +213,10 @@ public class XProjectExtension
     private class MyToolbarCustomizer
             implements ToolbarComponentsCustomizer
     {
-        public MyToolbarCustomizer(UserMessages messages)
+        public MyToolbarCustomizer(UserMessages messages, JavaProcessFactory factory)
         {
             myMsg = messages;
+            myFactory = factory;
         }
 
         @Override
@@ -217,27 +225,27 @@ public class XProjectExtension
             // TODO: Do we really need the test?
             if ( ToolbarComponentsCustomizer.CUSTOM.equals(bar.getToolbarID()) ) {
                 // the build button
-                MyAction build_a = new MyAction(MyAction.BUILD, myMsg);
+                MyAction build_a = new MyAction(MyAction.BUILD, myMsg, myFactory);
                 build_a.setEnabled(true);
                 JButton build_b = new JButton(build_a);
                 build_b.setText("Build");
                 // the test button
-                MyAction test_a = new MyAction(MyAction.TEST, myMsg);
+                MyAction test_a = new MyAction(MyAction.TEST, myMsg, myFactory);
                 test_a.setEnabled(true);
                 JButton test_b = new JButton(test_a);
                 test_b.setText("Test");
                 // the doc button
-                MyAction doc_a = new MyAction(MyAction.DOC, myMsg);
+                MyAction doc_a = new MyAction(MyAction.DOC, myMsg, myFactory);
                 build_a.setEnabled(true);
                 JButton doc_b = new JButton(doc_a);
                 doc_b.setText("Doc");
                 // the deploy button
-                MyAction deploy_a = new MyAction(MyAction.DEPLOY, myMsg);
+                MyAction deploy_a = new MyAction(MyAction.DEPLOY, myMsg, myFactory);
                 build_a.setEnabled(true);
                 JButton deploy_b = new JButton(deploy_a);
                 deploy_b.setText("Deploy");
                 // the release button
-                MyAction release_a = new MyAction(MyAction.RELEASE, myMsg);
+                MyAction release_a = new MyAction(MyAction.RELEASE, myMsg, myFactory);
                 release_a.setEnabled(true);
                 JButton release_b = new JButton(release_a);
                 release_b.setText("Release");
@@ -274,6 +282,8 @@ public class XProjectExtension
 
         /** The messages object, used for dialog boxes creation and logging. */
         private UserMessages myMsg;
+        /** The java process factory. */
+        private JavaProcessFactory myFactory;
     }
 }
 

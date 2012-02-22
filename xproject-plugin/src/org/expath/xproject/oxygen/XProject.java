@@ -10,9 +10,9 @@
 package org.expath.xproject.oxygen;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.log4j.Logger;
+import ro.sync.exml.workspace.api.process.ProcessController;
+import ro.sync.exml.workspace.api.process.ProcessListener;
 
 /**
  * Support for XProject build tools.
@@ -34,7 +34,7 @@ public class XProject
      * Maybe we should throw an error here and let XProjectExtension deal with
      * the user interaction?
      */
-    public XProject(File project, UserMessages messages)
+    public XProject(File project, UserMessages messages, JavaProcessFactory factory)
     {
         // the project dir
         if ( project == null ) {
@@ -70,6 +70,12 @@ public class XProject
             throw new NullPointerException("User messages is null.");
         }
         myMsg = messages;
+
+        // the java process factory
+        if ( factory == null ) {
+            throw new NullPointerException("Java process factory is null.");
+        }
+        myFactory = factory;
     }
 
     /**
@@ -91,13 +97,12 @@ public class XProject
             throws XProjectException
     {
         String pipe = getHref(TESTER_STD, TESTER_OVERRIDE, "tester");
-        List<String> cmd = initJavaCmd();
-        cmd.add("-Dcom.xmlcalabash.xproc-configurer=org.expath.pkg.calabash.PkgConfigurer");
-        cmd.add("com.xmlcalabash.drivers.Main");
-        cmd.add("-i");
-        cmd.add("source=" + myDesc.getAbsolutePath());
-        cmd.add(pipe);
-        executeJavaCmd(cmd);
+        JavaProcess proc = initJavaProcess();
+        proc.setMainClass("com.xmlcalabash.drivers.Main");
+        proc.addArgument("-i");
+        proc.addArgument("source=" + myDesc.getAbsolutePath());
+        proc.addArgument(pipe);
+        executeJavaProcess(proc);
     }
 
     /**
@@ -110,20 +115,19 @@ public class XProject
     {
         ensureDistDir();
         String pipe = getHref(DOCER_STD, DOCER_OVERRIDE, "doc maker");
-        File src   = new File(myProject, "src/");
-        File dist  = new File(myProject, "dist/xqdoc/");
+        File src    = new File(myProject, "src/");
+        File dist   = new File(myProject, "dist/xqdoc/");
         // TODO: Redirect the output to the index.html file.
         // TODO: Actually, write instead a std doc.xproc pipeline in XProject.
-        File index = new File(myProject, "dist/xqdoc/index.html");
-        List<String> cmd = initJavaCmd();
-        cmd.add("-Dcom.xmlcalabash.xproc-configurer=org.expath.pkg.calabash.PkgConfigurer");
-        cmd.add("com.xmlcalabash.drivers.Main");
-        cmd.add(pipe);
-        cmd.add("xquery=" + src.getAbsolutePath());
-        cmd.add("output=" + dist.getAbsolutePath());
-        cmd.add("currentdir=" + src.getAbsolutePath());
-        cmd.add("format=html");
-        executeJavaCmd(cmd);
+        // File index  = new File(myProject, "dist/xqdoc/index.html");
+        JavaProcess proc = initJavaProcess();
+        proc.setMainClass("com.xmlcalabash.drivers.Main");
+        proc.addArgument("xquery=" + src.getAbsolutePath());
+        proc.addArgument("output=" + dist.getAbsolutePath());
+        proc.addArgument("currentdir=" + src.getAbsolutePath());
+        proc.addArgument("format=html");
+        proc.addArgument(pipe);
+        executeJavaProcess(proc);
     }
 
     /**
@@ -165,13 +169,13 @@ public class XProject
             throws XProjectException
     {
         String style = getHref(std, override, name);
-        List<String> cmd = initJavaCmd();
-        cmd.add("net.sf.saxon.Transform");
-        cmd.add("-init:org.expath.pkg.saxon.PkgInitializer");
-        cmd.add("-xsl:" + style);
-        cmd.add("-s:" + myDesc.getAbsolutePath());
-        cmd.add("{" + PROJECT_NS + "}revision=yo");
-        executeJavaCmd(cmd);
+        JavaProcess proc = initJavaProcess();
+        proc.setMainClass("net.sf.saxon.Transform");
+        proc.addArgument("-init:org.expath.pkg.saxon.PkgInitializer");
+        proc.addArgument("-xsl:" + style);
+        proc.addArgument("-s:" + myDesc.getAbsolutePath());
+        proc.addArgument("{" + PROJECT_NS + "}revision=yo");
+        executeJavaProcess(proc);
     }
 
     /**
@@ -184,66 +188,73 @@ public class XProject
      * class path is initialized by scanning the content of the subdir lib/
      * in the plugin dir.
      */
-    private List<String> initJavaCmd()
+    private JavaProcess initJavaProcess()
     {
+        JavaProcess proc = myFactory.initNewProcess();
         // TODO: Access the plugin dir through some oXygen API...
         // the classpath
         File lib = getPluginSubdir("lib/");
-        String cp = null;
         for ( File jar : lib.listFiles() ) {
             String path = jar.getAbsolutePath();
-            cp = cp == null ? path : cp + ":" + path;
+            proc.addClasspathItem(path);
         }
-        // the repo dir
+        // the java args
+        // TODO: Change the API to add properties one by one...
         File repo = getPluginSubdir("repo/");
-        // the command
-        List<String> cmd = new ArrayList<String>();
-        cmd.add("java");
-        cmd.add("-Dorg.expath.pkg.saxon.repo=" + repo.getAbsolutePath());
-        cmd.add("-Dorg.expath.pkg.calabash.repo=" + repo.getAbsolutePath());
-        cmd.add("-cp");
-        cmd.add(cp);
-        return cmd;
+        proc.addSystemProperty("org.expath.pkg.saxon.repo", repo.getAbsolutePath());
+        proc.addSystemProperty("org.expath.pkg.calabash.repo", repo.getAbsolutePath());
+        proc.addSystemProperty("com.xmlcalabash.xproc-configurer", "org.expath.pkg.calabash.PkgConfigurer");
+        return proc;
     }
 
-    private void executeJavaCmd(List<String> cmd)
+    private void executeJavaProcess(JavaProcess proc)
             throws XProjectException
     {
-        try {
-            // the repo dir
-            File repo = getPluginSubdir("repo/");
-            // the environment variables
-            String[] envp = new String[]{ "EXPATH_REPO=" + repo.getAbsolutePath() };
-            // the command as an array
-            String[] array = cmd.toArray(new String[]{});
-            // execute it!
-            Process proc = Runtime.getRuntime().exec(array);
-            // wait for it and check the result code
-            int result = proc.waitFor();
-            if ( result == 0 ) {
+        // $EXPATH_REPO
+        File repo = getPluginSubdir("repo/");
+        proc.addEnvVar("EXPATH_REPO", repo.getAbsolutePath());
+        // the listener
+        proc.setProcessListener(new XProjectProcListener());
+        // start it!
+        ProcessController control = proc.createJavaProcess();
+        control.start();
+    }
+
+    // TODO: ...
+    private class XProjectProcListener
+            extends ProcessListener
+    {
+        // TODO: put stdout/stderr in an output panel at bottom of the screen
+        @Override
+        public void newErrorLine(String line) {
+            LOG.debug("STDERR: " + line);
+        }
+
+        @Override
+        public void newOutputLine(String line) {
+            LOG.debug("STDOUT: " + line);
+        }
+
+        @Override
+        public void processCouldNotStart(String msg) {
+            myMsg.error("Process could not start: " + msg);
+        }
+
+        @Override
+        public void processEnded(int code) {
+            // check the result code
+            // TODO: It seems Calabash returns always 0?!?  Even with p:error...?!?
+            if ( code == 0 ) {
                 myMsg.info("Build succesful");
             }
             else {
-                myMsg.error("Build failure: " + result + "\n(please see oXygen logs)");
-            }
-            // log stdout and stderr
-            if ( LOG.isDebugEnabled() ) {
-                BufferedReader stdout = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                BufferedReader stderr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-                String line;
-                while ( (line = stdout.readLine()) != null ) {
-                    LOG.debug("STDOUT: " + line);
-                }
-                while ( (line = stderr.readLine()) != null ) {
-                    LOG.debug("STDERR: " + line);
-                }
+                myMsg.error("Build failure: " + code + "\n(please see oXygen logs)");
             }
         }
-        catch ( IOException ex ) {
-            throw new XProjectException("Error executing Saxon", ex);
-        }
-        catch ( InterruptedException ex ) {
-            throw new XProjectException("Error executing Saxon", ex);
+
+        @Override
+        public void processStarted(String name, String command) {
+            LOG.debug("Process started: " + name + "\n" + command);
         }
     }
 
@@ -293,6 +304,8 @@ public class XProject
     private File myDesc;
     /** The messages object, used for dialog boxes creation and logging. */
     private UserMessages myMsg;
+    /** The java process factory. */
+    private JavaProcessFactory myFactory;
     /** The logger for this class. */
     private static final Logger LOG = Logger.getLogger(XProjectExtension.class);
 
