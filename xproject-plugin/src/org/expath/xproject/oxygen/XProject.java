@@ -25,16 +25,12 @@ public class XProject
     /**
      * XProject constructor.
      * 
-     * The file parameter must point to a project directory.  The workspace
-     * parameter is the oXygen object to access the GUI services (it is used
-     * to open dialog boxes).
-     * 
-     * TODO: Should we really throw exception in this context?  I think we
-     * should give the user an error dialog box, but not throwing an error.
-     * Maybe we should throw an error here and let XProjectExtension deal with
-     * the user interaction?
+     * The file parameter must point to a project directory.  The user message
+     * object encapsulates the mean to dialog with the user (like showing
+     * dialog boxes).  The Java process factory creates Java processes.  And
+     * the plugin dir is the XProject subdir in the oXygen's "plugins/" dir.
      */
-    public XProject(File project, UserMessages messages, JavaProcessFactory factory)
+    public XProject(File project, UserMessages messages, JavaProcessFactory factory, File plugin_dir)
     {
         // the project dir
         if ( project == null ) {
@@ -76,6 +72,15 @@ public class XProject
             throw new NullPointerException("Java process factory is null.");
         }
         myFactory = factory;
+
+        // the plugin directory
+        if ( plugin_dir == null ) {
+            throw new NullPointerException("Plugin dir is null.");
+        }
+        if ( ! plugin_dir.isDirectory() ) {
+            throw new IllegalArgumentException("Plugin dir is not a directory: '" + plugin_dir + "'.");
+        }
+        myPluginDir = plugin_dir;
     }
 
     /**
@@ -191,7 +196,6 @@ public class XProject
     private JavaProcess initJavaProcess()
     {
         JavaProcess proc = myFactory.initNewProcess();
-        // TODO: Access the plugin dir through some oXygen API...
         // the classpath
         File lib = getPluginSubdir("lib/");
         for ( File jar : lib.listFiles() ) {
@@ -199,7 +203,6 @@ public class XProject
             proc.addClasspathItem(path);
         }
         // the java args
-        // TODO: Change the API to add properties one by one...
         File repo = getPluginSubdir("repo/");
         proc.addSystemProperty("org.expath.pkg.saxon.repo", repo.getAbsolutePath());
         proc.addSystemProperty("org.expath.pkg.calabash.repo", repo.getAbsolutePath());
@@ -220,11 +223,21 @@ public class XProject
         control.start();
     }
 
-    // TODO: ...
+    /**
+     * The process listener for our Java processes.
+     * 
+     * It does the following things:
+     * - log the command when the process is started
+     * - show an error dialog if the process could not start
+     * - show a dialog with either "success" or "failure" when process ends
+     * - redirect stdout and stderr to an output panel at bottom of the screen
+     * 
+     * TODO: Redirecting stdout and stderr is not implemented yet (they are
+     * logged, but not redirected to an output panel).
+     */
     private class XProjectProcListener
             extends ProcessListener
     {
-        // TODO: put stdout/stderr in an output panel at bottom of the screen
         @Override
         public void newErrorLine(String line) {
             LOG.debug("STDERR: " + line);
@@ -285,13 +298,12 @@ public class XProject
      */
     private File getPluginSubdir(String name)
     {
-        String path = PLUGIN_DIR + name;
-        File subdir = new File(path);
+        File subdir = new File(myPluginDir, name);
         if ( subdir == null ) {
-            myMsg.error("The plugin subdir is not found: '" + path + "'");
+            myMsg.error("The plugin subdir is not found: '" + name + "'");
         }
         if ( ! subdir.isDirectory() ) {
-            myMsg.error("The plugin subdir is not a dir: '" + path + "'");
+            myMsg.error("The plugin subdir is not a dir: '" + subdir + "'");
         }
         return subdir;
     }
@@ -306,15 +318,11 @@ public class XProject
     private UserMessages myMsg;
     /** The java process factory. */
     private JavaProcessFactory myFactory;
+    /** The java process factory. */
+    private File myPluginDir;
+
     /** The logger for this class. */
     private static final Logger LOG = Logger.getLogger(XProjectExtension.class);
-
-    /**
-     * FIXME: Hard-coded value...!!!
-     * 
-     * TODO: Retrieve the plugin dir through some oXygen API...
-     */
-    private static final String PLUGIN_DIR        = "/Applications/oxygen-13.2/plugins/xproject/";
 
     private static final String PROJECT_NS        = "http://expath.org/ns/project";
     private static final String XPROJECT_PRIVATE  = "xproject";

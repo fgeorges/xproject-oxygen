@@ -25,6 +25,7 @@ import ro.sync.exml.workspace.api.editor.WSEditor;
 import ro.sync.exml.workspace.api.standalone.StandalonePluginWorkspace;
 import ro.sync.exml.workspace.api.standalone.ToolbarComponentsCustomizer;
 import ro.sync.exml.workspace.api.standalone.ToolbarInfo;
+import ro.sync.util.editorvars.EditorVariables;
 
 /**
  * Support for XProject build tools in oXygen.
@@ -121,7 +122,11 @@ public class XProjectExtension
             }
             UserMessages msg = new UserMessages(myWorkspace);
             JavaProcessFactory factory = new JavaProcessFactory(myWorkspace);
-            XProject prj = new XProject(project, msg, factory);
+            String install_str = myWorkspace.getUtilAccess().expandEditorVariables(EditorVariables.OXYGEN_INSTALL_DIR, null);
+            File install = new File(install_str);
+            File plugins = new File(install, "plugins/");
+            File plugin = new File(plugins, "xproject/");
+            XProject prj = new XProject(project, msg, factory, plugin);
             try {
                 switch ( myAction ) {
                     case BUILD:   prj.build();   break;
