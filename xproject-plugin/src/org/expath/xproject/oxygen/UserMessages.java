@@ -9,6 +9,9 @@
 
 package org.expath.xproject.oxygen;
 
+import org.apache.log4j.Logger;
+import ro.sync.exml.workspace.api.Workspace;
+
 /**
  * Provides a mean to show message to the user.
  * 
@@ -20,9 +23,9 @@ package org.expath.xproject.oxygen;
  */
 public class UserMessages
 {
-    public UserMessages(XProjectExtension ext)
+    public UserMessages(Workspace ws)
     {
-        myExt = ext;
+        myWorkspace = ws;
     }
 
     /**
@@ -30,7 +33,8 @@ public class UserMessages
      */
     public void error(String msg)
     {
-        myExt.error(msg);
+        LOG.error(msg);
+        myWorkspace.showErrorMessage(msg);
     }
 
     /**
@@ -38,10 +42,16 @@ public class UserMessages
      */
     public void info(String msg)
     {
-        myExt.info(msg);
+        LOG.info(msg);
+        myWorkspace.showInformationMessage(msg);
     }
 
-    private XProjectExtension myExt;
+    /** The workspace object, to create dialog boxes. */
+    private Workspace myWorkspace;
+    /**
+     * TODO: This is not correct, let the caller pass its own logger...
+     */
+    private static final Logger LOG = Logger.getLogger(UserMessages.class);
 }
 
 
