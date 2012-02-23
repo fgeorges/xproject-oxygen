@@ -2,3 +2,4 @@ file-saxon-0.4.0 http://expath.org/lib/files 0.4.0
 expath-zip-saxon-0.6.0 http://expath.org/lib/zip 0.6.0
 xspec-0.4.0rc1 http://www.jenitennison.com/xslt/xspec 0.4.0rc1
 xproject-0.4.0 http://expath.org/lib/project 0.4.0
+xqdoc-0.1 http://xqdoc.org/ 0.1

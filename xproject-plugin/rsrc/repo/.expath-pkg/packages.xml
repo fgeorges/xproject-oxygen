@@ -12,4 +12,5 @@
    <package name="http://expath.org/lib/project"
             dir="xproject-0.4.0"
             version="0.4.0"/>
+   <package name="http://xqdoc.org/" dir="xqdoc-0.1" version="0.1"/>
 </packages>
