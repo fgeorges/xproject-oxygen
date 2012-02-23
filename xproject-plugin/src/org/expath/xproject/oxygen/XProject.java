@@ -11,7 +11,6 @@ package org.expath.xproject.oxygen;
 
 import java.io.*;
 import org.apache.log4j.Logger;
-import ro.sync.exml.workspace.api.process.ProcessController;
 import ro.sync.exml.workspace.api.process.ProcessListener;
 
 /**
@@ -127,10 +126,8 @@ public class XProject
         // File index  = new File(myProject, "dist/xqdoc/index.html");
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
-        proc.addArgument("xquery=" + src.getAbsolutePath());
-        proc.addArgument("output=" + dist.getAbsolutePath());
-        proc.addArgument("currentdir=" + src.getAbsolutePath());
-        proc.addArgument("format=html");
+        proc.addArgument("-i");
+        proc.addArgument("source=" + myDesc.getAbsolutePath());
         proc.addArgument(pipe);
         proc.createJavaProcess().start();
     }
@@ -324,7 +321,7 @@ public class XProject
     private static final String TESTER_STD        = "http://expath.org/ns/project/test.xproc";
     private static final String TESTER_OVERRIDE   = "test-project.xproc";
     // TODO: Define a standard one.
-    private static final String DOCER_STD         = "http://xqdoc.org/xquerydoc.xpl";
+    private static final String DOCER_STD         = "http://expath.org/ns/project/doc.xproc";
     private static final String DOCER_OVERRIDE    = "doc-project.xproc";
     private static final String RELEASER_STD      = "http://expath.org/ns/project/release.xsl";
     private static final String RELEASER_OVERRIDE = "release-project.xsl";
