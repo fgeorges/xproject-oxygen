@@ -121,9 +121,6 @@ public class XProject
         String pipe = getHref(DOCER_STD, DOCER_OVERRIDE, "doc maker");
         File src    = new File(myProject, "src/");
         File dist   = new File(myProject, "dist/xqdoc/");
-        // TODO: Redirect the output to the index.html file.
-        // TODO: Actually, write instead a std doc.xproc pipeline in XProject.
-        // File index  = new File(myProject, "dist/xqdoc/index.html");
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument("-i");
