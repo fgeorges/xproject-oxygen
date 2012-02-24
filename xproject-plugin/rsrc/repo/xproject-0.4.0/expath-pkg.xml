@@ -26,4 +26,8 @@
       <import-uri>http://expath.org/ns/project/test.xproc</import-uri>
       <file>test.xproc</file>
    </xproc>
+   <xproc>
+      <import-uri>http://expath.org/ns/project/doc.xproc</import-uri>
+      <file>doc.xproc</file>
+   </xproc>
 </package>

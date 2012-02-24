@@ -70,7 +70,7 @@
       <!--p:option name="xspec-home" required="true"/-->
       <p:variable name="suite"  select="/*/@uri"/>
       <!-- TODO: Generate something nicer. -->
-      <p:variable name="report" select="replace($suite, '(.+).xspec', $report-re)"/>
+      <p:variable name="report" select="replace($suite, '(.*/)?([^/]+).xspec', $report-re)"/>
       <p:load>
          <p:with-option name="href" select="/suite/@uri"/>
       </p:load>
@@ -266,14 +266,25 @@
             <p:with-option name="dir" select="$dir"/>
          </t:find-suites>
          <p:wrap-sequence wrapper="suites"/>
-         <t:run-suites>
-            <p:input port="parameters">
-               <p:pipe step="props" port="result"/>
-            </p:input>
-            <p:with-option name="processor"   select="$processor"/>
-            <p:with-option name="report-re"   select="$report-re"/>
-            <p:with-option name="project-dir" select="$proj:project"/>
-         </t:run-suites>
+         <p:try>
+            <p:group>
+               <t:run-suites>
+                  <p:input port="parameters">
+                     <p:pipe step="props" port="result"/>
+                  </p:input>
+                  <p:with-option name="processor"   select="$processor"/>
+                  <p:with-option name="report-re"   select="$report-re"/>
+                  <p:with-option name="project-dir" select="$proj:project"/>
+               </t:run-suites>
+            </p:group>
+            <p:catch name="catch">
+               <p:identity>
+                  <p:input port="source">
+                     <p:pipe step="catch" port="error"/>
+                  </p:input>
+               </p:identity>
+            </p:catch>
+         </p:try>
       </p:for-each>
    </p:for-each>
 

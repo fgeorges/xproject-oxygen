@@ -96,8 +96,21 @@
          </p:input>
       </t:log>
 
-      <!-- TODO: Check HTTP return code, etc.? (using @detailed = true) -->
-      <p:http-request name="run"/>
+      <p:try>
+         <p:group>
+            <!-- TODO: Check HTTP return code, etc.? (using @detailed = true) -->
+            <p:http-request name="run"/>
+         </p:group>
+         <p:catch name="http-catch">
+            <p:error code="t:ERR003">
+               <p:input port="source">
+                  <p:inline>
+                     <message>Yo, moma!</message>
+                  </p:inline>
+               </p:input>
+            </p:error>
+         </p:catch>
+      </p:try>
 
       <!-- log the HTTP request ? -->
       <t:log if-set="log-http-response">
