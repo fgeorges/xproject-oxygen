@@ -41,9 +41,9 @@ public class XProject
         myProject = project;
 
         // the project private dir
-        File priv = new File(project, XPROJECT_PRIVATE);
+        File priv = new File(project, XProjectConstants.PRIVATE_DIR);
         if ( priv == null ) {
-            throw new IllegalArgumentException("Project dir does not have an " + XPROJECT_PRIVATE + "/ subdir (in '" + project + "').");
+            throw new IllegalArgumentException("Project dir does not have an " + XProjectConstants.PRIVATE_DIR + "/ subdir (in '" + project + "').");
         }
         if ( ! priv.isDirectory() ) {
             throw new IllegalArgumentException("XProject subdir is not a directory: '" + priv + "'.");
@@ -51,9 +51,9 @@ public class XProject
         myPrivate = priv;
 
         // the project descriptor
-        File desc = new File(priv, XPROJECT_DESC);
+        File desc = new File(priv, XProjectConstants.DESCRIPTOR);
         if ( desc == null ) {
-            throw new IllegalArgumentException("Project descriptor (aka " + XPROJECT_DESC + ") does not exist (in '" + priv + "').");
+            throw new IllegalArgumentException("Project descriptor (aka " + XProjectConstants.DESCRIPTOR + ") does not exist (in '" + priv + "').");
         }
         if ( ! desc.isFile() ) {
             throw new IllegalArgumentException("Project descriptor is not a regular file: '" + desc + "'.");
@@ -89,7 +89,7 @@ public class XProject
             throws XProjectException
     {
         ensureDistDir();
-        applyStylesheet(PACKAGER_STD, PACKAGER_OVERRIDE, "packager");
+        applyStylesheet(XProjectConstants.PACKAGER_STD, XProjectConstants.PACKAGER_OVERRIDE, "packager");
     }
 
     /**
@@ -100,11 +100,11 @@ public class XProject
    public void test()
             throws XProjectException
     {
-        String pipe = getHref(TESTER_STD, TESTER_OVERRIDE, "tester");
+        String pipe = getHref(XProjectConstants.TESTER_STD, XProjectConstants.TESTER_OVERRIDE, "tester");
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument("-i");
-        proc.addArgument("source=" + myDesc.getAbsolutePath());
+        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
         proc.addArgument(pipe);
         proc.createJavaProcess().start();
     }
@@ -118,13 +118,13 @@ public class XProject
             throws XProjectException
     {
         ensureDistDir();
-        String pipe = getHref(DOCER_STD, DOCER_OVERRIDE, "doc maker");
+        String pipe = getHref(XProjectConstants.DOCER_STD, XProjectConstants.DOCER_OVERRIDE, "doc maker");
         File src    = new File(myProject, "src/");
         File dist   = new File(myProject, "dist/xqdoc/");
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument("-i");
-        proc.addArgument("source=" + myDesc.getAbsolutePath());
+        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
         proc.addArgument(pipe);
         proc.createJavaProcess().start();
     }
@@ -145,18 +145,19 @@ public class XProject
             throws XProjectException
     {
         ensureDistDir();
-        applyStylesheet(RELEASER_STD, RELEASER_OVERRIDE, "releaser");
+        applyStylesheet(XProjectConstants.RELEASER_STD, XProjectConstants.RELEASER_OVERRIDE, "releaser");
     }
 
     /**
      * Ensure [project]/dist/ subdir, where to place most of the result of the builds.
      */
     private void ensureDistDir()
+            throws XProjectException
     {
         File dist = new File(myProject, "dist/");
         if ( ! dist.exists() ) {
             if ( ! dist.mkdir() ) {
-                myMsg.error(LOG, "Impossible to create the project dist/ subdir (in " + dist + ")");
+                throw new XProjectException("Impossible to create the project dist/ subdir (in " + dist + ")");
             }
         }
     }
@@ -172,8 +173,8 @@ public class XProject
         proc.setMainClass("net.sf.saxon.Transform");
         proc.addArgument("-init:org.expath.pkg.saxon.PkgInitializer");
         proc.addArgument("-xsl:" + style);
-        proc.addArgument("-s:" + myDesc.getAbsolutePath());
-        proc.addArgument("{" + PROJECT_NS + "}revision=yo");
+        proc.addArgument("-s:" + MiscUtils.getPath(myDesc));
+        proc.addArgument("{" + XProjectConstants.NS_URI + "}revision=yo");
         proc.createJavaProcess().start();
     }
 
@@ -188,6 +189,7 @@ public class XProject
      * as the caller set the main class and its parameters).
      */
     private JavaProcess initJavaProcess()
+            throws XProjectException
     {
         JavaProcess proc = myFactory.initNewProcess();
         // the classpath
@@ -283,13 +285,14 @@ public class XProject
      * Throw an error if it does not exist or if it is not a directory.
      */
     private File getPluginSubdir(String name)
+            throws XProjectException
     {
         File subdir = new File(myPluginDir, name);
         if ( subdir == null ) {
-            myMsg.error(LOG, "The plugin subdir is not found: '" + name + "'");
+            throw new XProjectException("The plugin subdir is not found: '" + name + "'");
         }
         if ( ! subdir.isDirectory() ) {
-            myMsg.error(LOG, "The plugin subdir is not a dir: '" + subdir + "'");
+            throw new XProjectException("The plugin subdir is not a dir: '" + subdir + "'");
         }
         return subdir;
     }
@@ -309,19 +312,6 @@ public class XProject
 
     /** The logger for this class. */
     private static final Logger LOG = Logger.getLogger(XProjectExtension.class);
-
-    private static final String PROJECT_NS        = "http://expath.org/ns/project";
-    private static final String XPROJECT_PRIVATE  = "xproject";
-    private static final String XPROJECT_DESC     = "project.xml";
-    private static final String PACKAGER_STD      = "http://expath.org/ns/project/package.xsl";
-    private static final String PACKAGER_OVERRIDE = "package-project.xsl";
-    private static final String TESTER_STD        = "http://expath.org/ns/project/test.xproc";
-    private static final String TESTER_OVERRIDE   = "test-project.xproc";
-    // TODO: Define a standard one.
-    private static final String DOCER_STD         = "http://expath.org/ns/project/doc.xproc";
-    private static final String DOCER_OVERRIDE    = "doc-project.xproc";
-    private static final String RELEASER_STD      = "http://expath.org/ns/project/release.xsl";
-    private static final String RELEASER_OVERRIDE = "release-project.xsl";
 
 // Notes on: Old code...
 // 
