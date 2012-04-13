@@ -1,9 +1,0 @@
-<package xmlns="http://expath.org/ns/pkg"
-         name="http://expath.org/lib/files"
-         abbrev="file-saxon"
-         version="0.4.0"
-         spec="1.0">
-
-   <title>EXPath File System module</title>
-
-</package>

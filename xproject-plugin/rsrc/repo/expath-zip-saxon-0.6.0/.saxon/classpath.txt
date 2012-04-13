@@ -1,3 +1,0 @@
-/Applications/oxygen-13.2/plugins/xproject/repo/expath-zip-saxon-0.6.0/expath-zip-saxon/lib/tagsoup-1.2.jar
-/Applications/oxygen-13.2/plugins/xproject/repo/expath-zip-saxon-0.6.0/expath-zip-saxon/jar/expath-zip-java.jar
-/Applications/oxygen-13.2/plugins/xproject/repo/expath-zip-saxon-0.6.0/expath-zip-saxon/jar/expath-zip-saxon.jar
