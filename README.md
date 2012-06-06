@@ -22,6 +22,6 @@ FYI this plugin dir will contain:
 - `lib/` (from `xproject-plugin/lib/`)
 
 Technically, `xproject-plugin/` is a NetBeans project.  You need to have both
-Java libraries `oxygen` and `apache-log4j` defined in your NetBeans (in *Tools*
-> *Libraries*).  The lib `oxygen` must contain the JAR file from the oXygen
-SDK.
+Java libraries `oxygen` and `apache-log4j` defined in your NetBeans (in
+*Tools* > *Libraries*).  The lib `oxygen` must contain the JAR file from the
+oXygen SDK.
