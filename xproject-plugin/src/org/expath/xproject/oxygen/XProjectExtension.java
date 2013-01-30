@@ -12,8 +12,6 @@ package org.expath.xproject.oxygen;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,6 +24,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 import org.apache.log4j.Logger;
 import org.expath.xproject.oxygen.XProjectConstants.ProjectPhase;
@@ -35,6 +35,8 @@ import ro.sync.exml.workspace.api.editor.WSEditor;
 import ro.sync.exml.workspace.api.standalone.StandalonePluginWorkspace;
 import ro.sync.exml.workspace.api.standalone.ToolbarComponentsCustomizer;
 import ro.sync.exml.workspace.api.standalone.ToolbarInfo;
+import ro.sync.exml.workspace.api.standalone.ViewComponentCustomizer;
+import ro.sync.exml.workspace.api.standalone.ViewInfo;
 import ro.sync.util.editorvars.EditorVariables;
 
 /**
@@ -60,8 +62,11 @@ public class XProjectExtension
         myPluginDir  = new File(plugins, "xproject/");
         myIconsDir   = new File(myPluginDir, "icons/");
         // the toolbar customizer, to inject the XProject toolbar
-        ToolbarComponentsCustomizer cust = new MyToolbarCustomizer();
-        ws.addToolbarComponentsCustomizer(cust);
+        ToolbarComponentsCustomizer bar_cust = new MyToolbarCustomizer();
+        ws.addToolbarComponentsCustomizer(bar_cust);
+        // the view customizer, to get the info on the view declared in plugin.xml
+        ViewComponentCustomizer view_cust = new MyViewCustomizer();
+        ws.addViewComponentCustomizer(view_cust);
     }
 
     @Override
@@ -145,6 +150,8 @@ public class XProjectExtension
     private File myPluginDir;
     /** The icons dir for the XProject plugin (like [myPluginDir]/icons/). */
     private File myIconsDir;
+    /** Where to write messages in the view. */
+    private JTextArea myView;
 
     /** The logger object. */
     private static final Logger LOG = Logger.getLogger(XProjectExtension.class);
@@ -184,57 +191,18 @@ public class XProjectExtension
             }
             // create the project dirs & descriptor
             File dir = chooser.getSelectedFile();
-            if ( dir.exists() ) {
-                myMsg.error(LOG, "Directory exists: " + dir);
-                return;
-            }
-            boolean created = dir.mkdirs();
-            if ( ! created ) {
-                myMsg.error(LOG, "Error creating directory: " + dir);
-                return;
-            }
-            File src = new File(dir, "src");
-            created = src.mkdir();
-            if ( ! created ) {
-                myMsg.error(LOG, "Error creating directory: " + src);
-                return;
-            }
-            File xproject = new File(dir, "xproject");
-            created = xproject.mkdir();
-            if ( ! created ) {
-                myMsg.error(LOG, "Error creating directory: " + xproject);
-                return;
-            }
-            File project = new File(xproject, "project.xml");
-            created = createProjectDescriptor(project);
-            if ( created ) {
-                try {
-                    myWorkspace.open(project.toURI().toURL());
-                }
-                catch ( MalformedURLException ex ) {
-                    myMsg.error(LOG, "Error opening the project descriptor in the editor: " + project);
-                }
-            }
-        }
-
-        private boolean createProjectDescriptor(File desc)
-        {
+            File desc = null;
             try {
-                PrintWriter out = new PrintWriter(desc);
-                out.append("<project xmlns=\"" + XProjectConstants.NS_URI + "\"\n");
-                out.append("         name=\"[[ http://example.org/your/project/name ]]\"\n");
-                out.append("         abbrev=\"[[ your-project ]]\"\n");
-                out.append("         version=\"[[ 0.1.0 ]]\">\n");
-                out.append("\n");
-                out.append("   <title>[[ Short description of your project ]]</title>\n");
-                out.append("\n");
-                out.append("</project>\n");
-                out.close();
-                return true;
+                JavaProcessFactory factory = new JavaProcessFactory(myWorkspace);
+                XProject xproject = XProject.setup(dir, myMsg, factory, myPluginDir);
+                desc = xproject.getDescriptor();
+                myWorkspace.open(desc.toURI().toURL());
             }
-            catch ( IOException ex ) {
-                myMsg.error(LOG, "Error writing the project descriptor " + desc + ": " + ex, ex);
-                return false;
+            catch ( XProjectException ex ) {
+                myMsg.error(LOG, "Error seting up the project: " + ex, ex);
+            }
+            catch ( MalformedURLException ex ) {
+                myMsg.error(LOG, "Error opening the project descriptor in the editor: " + desc);
             }
         }
     }
@@ -369,6 +337,24 @@ public class XProjectExtension
             Icon icon = new ImageIcon(MiscUtils.getPath(img));
             button.setIcon(icon);
             return button;
+        }
+    }
+
+    private class MyViewCustomizer
+            implements ViewComponentCustomizer
+    {
+        @Override
+        public void customizeView(ViewInfo info)
+        {
+            String id = info.getViewID();
+            if ( "xproject-view".equals(id) ) {
+                myView = new JTextArea("XProject log:");
+                info.setComponent(new JScrollPane(myView));
+                info.setTitle("XProject");
+                // TODO: Set an icon...
+                // info.setIcon(Icons.getIcon(...));
+                myMsg.setView(myView);
+            }
         }
     }
 }

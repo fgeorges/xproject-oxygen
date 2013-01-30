@@ -12,4 +12,6 @@
 
    <extension type="WorkspaceAccess" class="org.expath.xproject.oxygen.XProjectExtension"/>
 
+   <view id="xproject-view" initialSide="WEST" initialRow="0"/>
+
 </plugin>

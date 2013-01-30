@@ -9,6 +9,7 @@
 
 package org.expath.xproject.oxygen;
 
+import javax.swing.JTextArea;
 import org.apache.log4j.Logger;
 import ro.sync.exml.workspace.api.Workspace;
 
@@ -34,6 +35,7 @@ public class UserMessages
     public void error(Logger log, String msg)
     {
         log.error(msg);
+        myView.append("ERROR: " + msg + "\n");
         myWorkspace.showErrorMessage(msg);
     }
 
@@ -43,6 +45,8 @@ public class UserMessages
     public void error(Logger log, String msg, Throwable ex)
     {
         log.error(msg, ex);
+        myView.append("ERROR: " + msg + "\n");
+        printStacktrace(ex);
         myWorkspace.showErrorMessage(msg);
     }
 
@@ -52,6 +56,7 @@ public class UserMessages
     public void info(Logger log, String msg)
     {
         log.info(msg);
+        myView.append("INFO: " + msg + "\n");
         myWorkspace.showInformationMessage(msg);
     }
 
@@ -61,10 +66,29 @@ public class UserMessages
     public void debug(Logger log, String msg)
     {
         log.debug(msg);
+        myView.append("DEBUG: " + msg + "\n");
+    }
+
+    void setView(JTextArea view)
+    {
+        myView = view;
+    }
+
+    private void printStacktrace(Throwable ex)
+    {
+        myView.append(ex.getMessage() + "\n");
+        for ( StackTraceElement elem : ex.getStackTrace() ) {
+            myView.append("    " + elem + "\n");
+        }
+        if ( ex.getCause() != null ) {
+            printStacktrace(ex.getCause());
+        }
     }
 
     /** The workspace object, to create dialog boxes. */
     private Workspace myWorkspace;
+    /** Where to write messages in the view. */
+    private JTextArea myView;
 }
 
 
