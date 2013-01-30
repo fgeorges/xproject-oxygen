@@ -1,6 +1,9 @@
 # The version in the file name for the ZIP is also in ../xproject-plugin/rsrc/plugin.xml
 # TODO: Subsitute it automatically in plugin.xml...
 
+# TODO: Must the the same in ../xproject-plugin/rsrc/plugin.xml as well !
+VERSION=0.4.0
+
 all:
 	mkdir xproject/
 	cp    ../xproject-plugin/dist/xproject-oxygen-plugin.jar xproject/
@@ -15,4 +18,4 @@ all:
 	for pkg in ../xproject-plugin/rsrc/packages/*.xar; do \
 	    xrepo --repo xproject/repo/ install $$pkg; \
 	done
-	zip -r -9 xproject-oxygen-plugin-0.3.0.zip xproject/
+	zip -r -9 xproject-oxygen-plugin-$(VERSION).zip xproject/
