@@ -9,7 +9,7 @@
 
 package org.expath.xproject.oxygen;
 
-import java.io.*;
+import java.io.File;
 import org.apache.log4j.Logger;
 import ro.sync.exml.workspace.api.process.ProcessListener;
 
@@ -83,13 +83,42 @@ public class XProject
     }
 
     /**
-     * Build the package (by applying the XProject "package" stylesheet on project.xml).
+     * Return the project descriptor, aka 'xproject/project.xml'.
+     */
+    public File getDescriptor()
+    {
+        return myDesc;
+    }
+
+    /**
+     * Setup a new project (by calling the XProject "setup" pipeline with the dir as option).
+     * 
+     * calabash [pipeline] path=[dir]
+     */
+    public static XProject setup(File dir, UserMessages messages, JavaProcessFactory factory, File plugin_dir)
+            throws XProjectException
+    {
+        if ( dir.exists() ) {
+            throw new XProjectException("Directory exists: " + dir);
+        }
+        String pipe = XProjectConstants.SETUPER_STD;
+        JavaProcess proc = initJavaProcess(factory, messages, plugin_dir);
+        proc.setMainClass("com.xmlcalabash.drivers.Main");
+        proc.addArgument(pipe);
+        proc.addArgument("path=" + MiscUtils.getPath(dir));
+        proc.createJavaProcess().start();
+        return new XProject(dir, messages, factory, plugin_dir);
+    }
+
+    /**
+     * Build the project (by applying the XProject "build" pipeline on project.xml).
+     * 
+     * calabash -i source=xproject/project.xml [pipeline]
      */
     public void build()
             throws XProjectException
     {
-        ensureDistDir();
-        applyStylesheet(XProjectConstants.PACKAGER_STD, XProjectConstants.PACKAGER_OVERRIDE, "packager");
+        applyPipeline(XProjectConstants.BUILDER_STD, XProjectConstants.BUILDER_OVERRIDE, "builder");
     }
 
     /**
@@ -100,13 +129,7 @@ public class XProject
    public void test()
             throws XProjectException
     {
-        String pipe = getHref(XProjectConstants.TESTER_STD, XProjectConstants.TESTER_OVERRIDE, "tester");
-        JavaProcess proc = initJavaProcess();
-        proc.setMainClass("com.xmlcalabash.drivers.Main");
-        proc.addArgument("-i");
-        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
-        proc.addArgument(pipe);
-        proc.createJavaProcess().start();
+        applyPipeline(XProjectConstants.TESTER_STD, XProjectConstants.TESTER_OVERRIDE, "tester");
     }
 
     /**
@@ -163,6 +186,21 @@ public class XProject
     }
 
     /**
+     * calabash -i source=xproject/project.xml [pipe]
+     */
+    private void applyPipeline(String std, String override, String name)
+            throws XProjectException
+    {
+        String pipe = getHref(std, override, name);
+        JavaProcess proc = initJavaProcess();
+        proc.setMainClass("com.xmlcalabash.drivers.Main");
+        proc.addArgument("-i");
+        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
+        proc.addArgument(pipe);
+        proc.createJavaProcess().start();
+    }
+
+    /**
      * saxon -xsl:[style] -s:xproject/project.xml proj:revision=...
      */
     private void applyStylesheet(String std, String override, String name)
@@ -174,6 +212,7 @@ public class XProject
         proc.addArgument("-init:org.expath.pkg.saxon.PkgInitializer");
         proc.addArgument("-xsl:" + style);
         proc.addArgument("-s:" + MiscUtils.getPath(myDesc));
+        // TODO: Retrieve the revision number!
         proc.addArgument("{" + XProjectConstants.NS_URI + "}revision=yo");
         proc.createJavaProcess().start();
     }
@@ -191,15 +230,21 @@ public class XProject
     private JavaProcess initJavaProcess()
             throws XProjectException
     {
-        JavaProcess proc = myFactory.initNewProcess();
+        return initJavaProcess(myFactory, myMsg, myPluginDir);
+    }
+
+    private static JavaProcess initJavaProcess(JavaProcessFactory factory, UserMessages msg, File plugin_dir)
+            throws XProjectException
+    {
+        JavaProcess proc = factory.initNewProcess();
         // the classpath
-        File lib = getPluginSubdir("lib/");
+        File lib = getPluginSubdir("lib/", plugin_dir);
         for ( File jar : lib.listFiles() ) {
             String path = jar.getAbsolutePath();
             proc.addClasspathItem(path);
         }
         // the repo dir
-        File repo = getPluginSubdir("repo/");
+        File repo = getPluginSubdir("repo/", plugin_dir);
         // $EXPATH_REPO
         proc.addEnvVar("EXPATH_REPO", repo.getAbsolutePath());
         // the java args
@@ -207,7 +252,8 @@ public class XProject
         proc.addSystemProperty("org.expath.pkg.calabash.repo", repo.getAbsolutePath());
         proc.addSystemProperty("com.xmlcalabash.xproc-configurer", "org.expath.pkg.calabash.PkgConfigurer");
         // the listener
-        proc.setProcessListener(new XProjectProcListener());
+        ProcessListener listener = new XProjectProcListener(msg);
+        proc.setProcessListener(listener);
         return proc;
     }
 
@@ -223,17 +269,33 @@ public class XProject
      * TODO: Redirecting stdout and stderr is not implemented yet (they are
      * logged, but not redirected to an output panel).
      */
-    private class XProjectProcListener
+    private static class XProjectProcListener
             extends ProcessListener
     {
+        public XProjectProcListener(UserMessages messages) {
+            myMsg = messages;
+            myStdOut = new StringBuilder();
+            myStdErr = new StringBuilder();
+        }
+
+        public String getStdOut() {
+            return myStdOut.toString();
+        }
+
+        public String getStdErr() {
+            return myStdErr.toString();
+        }
+
         @Override
         public void newErrorLine(String line) {
             LOG.debug("STDERR: " + line);
+            myStdErr.append(line);
         }
 
         @Override
         public void newOutputLine(String line) {
             LOG.debug("STDOUT: " + line);
+            myStdOut.append(line);
         }
 
         @Override
@@ -257,6 +319,10 @@ public class XProject
         public void processStarted(String name, String command) {
             LOG.debug("Process started: " + name + "\n" + command);
         }
+
+        private UserMessages  myMsg;
+        private StringBuilder myStdOut;
+        private StringBuilder myStdErr;
     }
 
     /**
@@ -287,7 +353,13 @@ public class XProject
     private File getPluginSubdir(String name)
             throws XProjectException
     {
-        File subdir = new File(myPluginDir, name);
+        return getPluginSubdir(name, myPluginDir);
+    }
+
+    private static File getPluginSubdir(String name, File plugin_dir)
+            throws XProjectException
+    {
+        File subdir = new File(plugin_dir, name);
         if ( subdir == null ) {
             throw new XProjectException("The plugin subdir is not found: '" + name + "'");
         }

@@ -30,8 +30,9 @@ public class XProjectConstants
     public static final String NS_URI            = "http://expath.org/ns/project";
     public static final String PRIVATE_DIR       = "xproject";
     public static final String DESCRIPTOR        = "project.xml";
-    public static final String PACKAGER_STD      = "http://expath.org/ns/project/package.xsl";
-    public static final String PACKAGER_OVERRIDE = "package-project.xsl";
+    public static final String SETUPER_STD       = "http://expath.org/ns/project/setup.xproc";
+    public static final String BUILDER_STD       = "http://expath.org/ns/project/build.xproc";
+    public static final String BUILDER_OVERRIDE  = "build-project.xproc";
     public static final String TESTER_STD        = "http://expath.org/ns/project/test.xproc";
     public static final String TESTER_OVERRIDE   = "test-project.xproc";
     public static final String DOCER_STD         = "http://expath.org/ns/project/doc.xproc";
