@@ -2,7 +2,7 @@
 # TODO: Subsitute it automatically in plugin.xml...
 
 # TODO: Must the the same in ../xproject-plugin/rsrc/plugin.xml as well !
-VERSION=0.4.0
+VERSION=0.5.0dev
 
 all:
 	mkdir xproject/
