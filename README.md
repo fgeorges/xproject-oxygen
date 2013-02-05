@@ -11,14 +11,21 @@ Documentation can be found at http://expath.org/modules/xproject/oxygen.
 
 The plugin provides 4 buttons in the toolbar: 
 
-- **build** (generates the XAR file)
-- **test** (runs test suites and generate reports)
-- **document** (generates documentation from source code)
-- **release** (builds a ZIP archive containing the XAR, a README, the
-  source, etc., ready to use)
+- **build** - generates the XAR file
+- **test** - runs test suites and generate reports
+- **document** - generates documentation from source code
+- **release** - builds a ZIP archive containing the XAR, a README, the
+  source, etc., ready to use
 
 The buttons can be used while editing any file within the project
 directory.
+
+
+## Download
+
+Download the release file from the [download
+area](http://code.google.com/p/expath-pkg/downloads).  Look for the
+latest file named `xproject-oxygen-plugin-x.y.z.zip`.
 
 
 ## Installation
@@ -37,6 +44,6 @@ The plugin directory will contain:
 ## Developing this project
 
 Technically, `xproject-plugin/` is a NetBeans project.  You’ll need to
-add two libraries to NetBeans (**Tools ► Libraries**): `oxygen` and
+add two libraries to NetBeans (**Tools -> Libraries**): `oxygen` and
 `apache-log4j`.  The `oxygen` lib must contain the JAR file from the
 oXygen SDK.
