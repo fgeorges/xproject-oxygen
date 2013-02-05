@@ -2,8 +2,9 @@
 
 This project provides a plugin for the [oXygen XML](http://oxygenxml.com/) IDE,
 to support [XProject](http://expath.org/modules/xproject/), the XML project
-manager from [EXPath](http://expath.org/).  Documentation can be found
-at http://expath.org/modules/xproject/oxygen.
+manager from [EXPath](http://expath.org/).
+
+Documentation can be found at http://expath.org/modules/xproject/oxygen.
 
 
 ## What’s it do?
