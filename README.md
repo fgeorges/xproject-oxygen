@@ -44,6 +44,6 @@ The plugin directory will contain:
 ## Developing this project
 
 Technically, `xproject-plugin/` is a NetBeans project.  You’ll need to
-add two libraries to NetBeans (**Tools -> Libraries**): `oxygen` and
+add two libraries to NetBeans (in "Tools ► Libraries"): `oxygen` and
 `apache-log4j`.  The `oxygen` lib must contain the JAR file from the
 oXygen SDK.
