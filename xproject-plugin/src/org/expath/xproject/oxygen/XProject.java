@@ -10,6 +10,7 @@
 package org.expath.xproject.oxygen;
 
 import java.io.File;
+import java.net.URI;
 import org.apache.log4j.Logger;
 import ro.sync.exml.workspace.api.process.ProcessListener;
 
@@ -102,10 +103,11 @@ public class XProject
             throw new XProjectException("Directory exists: " + dir);
         }
         String pipe = XProjectConstants.SETUPER_STD;
+        String path = MiscUtils.getUri(dir);
         JavaProcess proc = initJavaProcess(factory, messages, plugin_dir);
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument(pipe);
-        proc.addArgument("path=" + MiscUtils.getPath(dir));
+        proc.addArgument("path=" + path);
         proc.createJavaProcess().start();
         return new XProject(dir, messages, factory, plugin_dir);
     }
@@ -147,7 +149,7 @@ public class XProject
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument("-i");
-        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
+        proc.addArgument("source=" + MiscUtils.getUri(myDesc));
         proc.addArgument(pipe);
         proc.createJavaProcess().start();
     }
@@ -195,7 +197,7 @@ public class XProject
         JavaProcess proc = initJavaProcess();
         proc.setMainClass("com.xmlcalabash.drivers.Main");
         proc.addArgument("-i");
-        proc.addArgument("source=" + MiscUtils.getPath(myDesc));
+        proc.addArgument("source=" + MiscUtils.getUri(myDesc));
         proc.addArgument(pipe);
         proc.createJavaProcess().start();
     }
@@ -211,7 +213,7 @@ public class XProject
         proc.setMainClass("net.sf.saxon.Transform");
         proc.addArgument("-init:org.expath.pkg.saxon.PkgInitializer");
         proc.addArgument("-xsl:" + style);
-        proc.addArgument("-s:" + MiscUtils.getPath(myDesc));
+        proc.addArgument("-s:" + MiscUtils.getUri(myDesc));
         // TODO: Retrieve the revision number!
         proc.addArgument("{" + XProjectConstants.NS_URI + "}revision=yo");
         proc.createJavaProcess().start();

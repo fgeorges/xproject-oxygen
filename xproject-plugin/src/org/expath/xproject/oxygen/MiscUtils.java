@@ -11,6 +11,7 @@ package org.expath.xproject.oxygen;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 
 /**
@@ -21,6 +22,12 @@ import java.io.IOException;
  */
 public class MiscUtils
 {
+    public static String getUri(File file)
+    {
+        URI uri = file.toURI();
+        return uri.toASCIIString();
+    }
+
     public static String getPath(File file)
     {
         try {
