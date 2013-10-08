@@ -290,28 +290,35 @@ public class XProject
         public void newErrorLine(String line) {
             LOG.debug("STDERR: " + line);
             myStdErr.append(line);
+            myStdErr.append("\n");
         }
 
         @Override
         public void newOutputLine(String line) {
             LOG.debug("STDOUT: " + line);
             myStdOut.append(line);
+            myStdOut.append("\n");
         }
 
         @Override
         public void processCouldNotStart(String msg) {
-            myMsg.error(LOG, "Process could not start: " + msg);
+            myMsg.error("Process could not start: " + msg);
         }
 
         @Override
         public void processEnded(int code) {
+            myMsg.debug("STDOUT -----------------------------------");
+            myMsg.debug(myStdOut.toString());
+            myMsg.debug("STDERR -----------------------------------");
+            myMsg.debug(myStdErr.toString());
+            myMsg.debug("end-of-outputs ---------------------------");
             // check the result code
             // TODO: It seems Calabash returns always 0?!?  Even with p:error...?!?
             if ( code == 0 ) {
-                myMsg.info(LOG, "Build succesful");
+                myMsg.info("Build succesful");
             }
             else {
-                myMsg.error(LOG, "Build failure: " + code + "\n(please see oXygen logs)");
+                myMsg.error("Build failure: " + code + "\n(please see oXygen logs)");
             }
         }
 
@@ -320,9 +327,9 @@ public class XProject
             LOG.debug("Process started: " + name + "\n" + command);
         }
 
-        private UserMessages  myMsg;
-        private StringBuilder myStdOut;
-        private StringBuilder myStdErr;
+        private final UserMessages  myMsg;
+        private final StringBuilder myStdOut;
+        private final StringBuilder myStdErr;
     }
 
     /**
@@ -343,17 +350,6 @@ public class XProject
             LOG.debug("Project dir does not override '" + msg);
             return std;
         }
-    }
-
-    /**
-     * Get a specific subdir of the plugin directory.
-     * 
-     * Throw an error if it does not exist or if it is not a directory.
-     */
-    private File getPluginSubdir(String name)
-            throws XProjectException
-    {
-        return getPluginSubdir(name, myPluginDir);
     }
 
     private static File getPluginSubdir(String name, File plugin_dir)
