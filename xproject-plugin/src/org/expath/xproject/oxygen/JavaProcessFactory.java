@@ -22,17 +22,19 @@ public class JavaProcessFactory
     /**
      * Package-visibility, intended to be used only by XProjectExtension.
      */
-    JavaProcessFactory(Workspace ws)
+    JavaProcessFactory(Workspace ws, UserMessages messages)
     {
         myWorkspace = ws;
+        myMessages = messages;
     }
 
     public JavaProcess initNewProcess()
     {
-        return new JavaProcess(myWorkspace);
+        return new JavaProcess(myWorkspace, myMessages);
     }
 
     private Workspace myWorkspace;
+    private UserMessages myMessages;
 }
 
 

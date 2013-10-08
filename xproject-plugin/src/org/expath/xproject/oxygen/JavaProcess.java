@@ -29,9 +29,10 @@ public class JavaProcess
     /**
      * Package-visibility, intended to be used only by JavaProcessFactory.
      */
-    JavaProcess(Workspace ws)
+    JavaProcess(Workspace ws, UserMessages messages)
     {
         myWorkspace = ws;
+        myMessages = messages;
     }
 
     /**
@@ -109,6 +110,7 @@ public class JavaProcess
         String[] cp = myClasspath.toArray(new String[]{});
         String args = formatArgs(myArgs);
         String java_args = formatArgs(myJavaArgs);
+        debug(cp, args, java_args);
         return myWorkspace.createJavaProcess(java_args, cp, myMainClass, args, myEnvVars, myCwd, myListener);
     }
 
@@ -122,7 +124,34 @@ public class JavaProcess
         return s;
     }
 
+    private void debug(String[] cp, String args, String java_args)
+    {
+        myMessages.debug("Java process creation:");
+        myMessages.debug("  java args: " + java_args);
+        if ( cp.length == 0 ) {
+            myMessages.debug("  classpath: <empty>");
+        }
+        else {
+            for ( String p : cp ) {
+                myMessages.debug("  classpath: " + p);
+            }
+        }
+        myMessages.debug("  main     : " + myMainClass);
+        myMessages.debug("  args     : " + args);
+        if ( myEnvVars.isEmpty() ) {
+            myMessages.debug("  env var  : <none>");
+        }
+        else {
+            for ( String v : myEnvVars.keySet() ) {
+                myMessages.debug("  env var  : " + v + " -> " + myEnvVars.get(v));
+            }
+        }
+        myMessages.debug("  cwd      : " + myCwd);
+        myMessages.debug("  listener : " + myListener);
+    }
+
     private Workspace myWorkspace;
+    private UserMessages myMessages;
     private List<String> myJavaArgs = new ArrayList<String>();
     private List<String> myClasspath = new ArrayList<String>();
     private String myMainClass;
