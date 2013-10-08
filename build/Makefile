@@ -2,7 +2,7 @@
 # TODO: Subsitute it automatically in plugin.xml...
 
 # TODO: Must the the same in ../xproject-plugin/rsrc/plugin.xml as well !
-VERSION=0.5.2
+VERSION=0.6.0
 
 HELLO_DIR=../../../../expath/pkg/project/test/hello-world/
 
