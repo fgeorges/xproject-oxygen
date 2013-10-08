@@ -54,7 +54,7 @@ public class XProjectExtension
         // the workspace object
         myWorkspace = ws;
         // the way to give user some feedback
-        myMsg = new UserMessages(ws);
+        myMsg = new UserMessages(ws, LOG);
         // the install plugin dir and its icons/ subdir (TODO: check for errors?)
         String install_str = myWorkspace.getUtilAccess().expandEditorVariables(EditorVariables.OXYGEN_INSTALL_DIR, null);
         File install = new File(install_str);
@@ -106,27 +106,27 @@ public class XProjectExtension
         if ( project == null ) {
             throw new XProjectException("The edited file is not part of an EXPath project.");
         }
-        JavaProcessFactory factory = new JavaProcessFactory(myWorkspace);
+        JavaProcessFactory factory = new JavaProcessFactory(myWorkspace, myMsg);
         return new XProject(project, myMsg, factory, myPluginDir);
     }
 
     private File getProjectDir(File file)
     {
         if ( ! file.exists() ) {
-            myMsg.error(LOG, "File does not exist: " + file);
+            myMsg.error("File does not exist: " + file);
             return null;
         }
         File parent = file.getParentFile();
         if ( parent == null ) {
-            myMsg.debug(LOG, "PARENT NULL");
+            myMsg.debug("PARENT NULL");
             return null;
         }
         else if ( isProjectDir(parent) ) {
-            myMsg.debug(LOG, "PARENT is project! " + parent);
+            myMsg.debug("PARENT is project! " + parent);
             return parent;
         }
         else {
-            myMsg.debug(LOG, "PARENT recurse on " + parent);
+            myMsg.debug("PARENT recurse on " + parent);
             return getProjectDir(parent);
         }
     }
@@ -136,7 +136,7 @@ public class XProjectExtension
         File[] children = dir.listFiles(new XProjectFilter());
         if ( children == null ) {
             // TODO: Should probably throw an exception instead.
-            myMsg.error(LOG, "File is not a dir: " + dir);
+            myMsg.error("File is not a dir: " + dir);
             return false;
         }
         return children.length > 0;
@@ -166,7 +166,7 @@ public class XProjectExtension
                 doAction(event);
             }
             catch ( Throwable ex ) {
-                myMsg.error(LOG, "Unexpected runtime error: " + ex, ex);
+                myMsg.error("Unexpected runtime error: " + ex, ex);
                 throw new RuntimeException(ex);
             }
         }
@@ -193,16 +193,16 @@ public class XProjectExtension
             File dir = chooser.getSelectedFile();
             File desc = null;
             try {
-                JavaProcessFactory factory = new JavaProcessFactory(myWorkspace);
+                JavaProcessFactory factory = new JavaProcessFactory(myWorkspace, myMsg);
                 XProject xproject = XProject.setup(dir, myMsg, factory, myPluginDir);
                 desc = xproject.getDescriptor();
                 myWorkspace.open(desc.toURI().toURL());
             }
             catch ( XProjectException ex ) {
-                myMsg.error(LOG, "Error seting up the project: " + ex, ex);
+                myMsg.error("Error seting up the project: " + ex, ex);
             }
             catch ( MalformedURLException ex ) {
-                myMsg.error(LOG, "Error opening the project descriptor in the editor: " + desc);
+                myMsg.error("Error opening the project descriptor in the editor: " + desc);
             }
         }
     }
@@ -222,7 +222,7 @@ public class XProjectExtension
                 doAction(event);
             }
             catch ( Throwable ex ) {
-                myMsg.error(LOG, "Unexpected runtime error: " + ex, ex);
+                myMsg.error("Unexpected runtime error: " + ex, ex);
                 throw new RuntimeException(ex);
             }
         }
@@ -242,7 +242,7 @@ public class XProjectExtension
                 }
             }
             catch ( XProjectException ex ) {
-                myMsg.error(LOG, ex.getMessage(), ex);
+                myMsg.error(ex.getMessage(), ex);
             }
         }
 
@@ -308,7 +308,7 @@ public class XProjectExtension
                     bar.setTitle("XProject");
                 }
                 catch ( XProjectException ex ) {
-                    myMsg.error(LOG, "Error setting up the XProject toolbar: " + ex, ex);
+                    myMsg.error("Error setting up the XProject toolbar: " + ex, ex);
                 }
             }
         }

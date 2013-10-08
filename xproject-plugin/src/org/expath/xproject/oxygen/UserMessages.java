@@ -24,17 +24,18 @@ import ro.sync.exml.workspace.api.Workspace;
  */
 public class UserMessages
 {
-    public UserMessages(Workspace ws)
+    public UserMessages(Workspace ws, Logger log)
     {
         myWorkspace = ws;
+        myLog = log;
     }
 
     /**
      * Display an error message in a dialog box, and in the logs.
      */
-    public void error(Logger log, String msg)
+    public void error(String msg)
     {
-        log.error(msg);
+        myLog.error(msg);
         myView.append("ERROR: " + msg + "\n");
         myWorkspace.showErrorMessage(msg);
     }
@@ -42,9 +43,9 @@ public class UserMessages
     /**
      * Display an error message in a dialog box, and in the logs (with a stacktrace).
      */
-    public void error(Logger log, String msg, Throwable ex)
+    public void error(String msg, Throwable ex)
     {
-        log.error(msg, ex);
+        myLog.error(msg, ex);
         myView.append("ERROR: " + msg + "\n");
         printStacktrace(ex);
         myWorkspace.showErrorMessage(msg);
@@ -53,9 +54,9 @@ public class UserMessages
     /**
      * Display an info message in a dialog box, and in the logs.
      */
-    public void info(Logger log, String msg)
+    public void info(String msg)
     {
-        log.info(msg);
+        myLog.info(msg);
         myView.append("INFO: " + msg + "\n");
         myWorkspace.showInformationMessage(msg);
     }
@@ -63,9 +64,9 @@ public class UserMessages
     /**
      * Add a logging message in the logs.
      */
-    public void debug(Logger log, String msg)
+    public void debug(String msg)
     {
-        log.debug(msg);
+        myLog.debug(msg);
         myView.append("DEBUG: " + msg + "\n");
     }
 
@@ -89,6 +90,8 @@ public class UserMessages
     private Workspace myWorkspace;
     /** Where to write messages in the view. */
     private JTextArea myView;
+    /** The logger to use to log the messages. */
+    private Logger myLog;
 }
 
 
