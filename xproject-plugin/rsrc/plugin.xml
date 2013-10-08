@@ -2,7 +2,7 @@
 
 <plugin name="XProject"
         description="XProject support."
-        version="0.5.0dev"
+        version="0.5.2"
         vendor="expath.org"
         class="org.expath.xproject.oxygen.XProjectPlugin">
 
